@@ -16,20 +16,20 @@ import (
 
 func main() {
 
-	a, _ := h.GetItem(9588901)
-	fmt.Println(a)
+	a, _ := h.GetItem(8863)
+	fmt.Printf("%+v", a)
 
 	b, _ := h.GetStories("ask")
-	fmt.Println(b)
+	fmt.Printf("%+v", b)
 
 	c, _ := h.GetMaxItemID()
-	fmt.Println(c)
+	fmt.Printf("%+v", c)
 
 	d, _ := h.GetUser("jl")
-	fmt.Println(d)
+	fmt.Printf("%+v", d)
 
 	e, _ := h.GetUpdates()
-	fmt.Println(e)
+	fmt.Printf("%+v", e)
 
 }
 ```
