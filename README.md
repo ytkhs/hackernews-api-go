@@ -5,6 +5,7 @@ wrapper for hacker news API ( https://github.com/HackerNews/API ) written in Gol
 
 ## Sample Usage
 
+```
 package main
 
 import (
@@ -31,3 +32,4 @@ func main() {
 	fmt.Println(e)
 
 }
+```
