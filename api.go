@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var apiEndpoint = "https://hacker-news.firebaseio.com/v0/"
@@ -60,7 +61,7 @@ func GetUser(name string) (User, error) {
 func GetStories(target string) ([]int, error) {
 
 	var stories Ids
-	switch target {
+	switch strings.ToLower(target) {
 	case "new", "top", "job", "ask":
 		body, _ := getJSON(apiEndpoint + target + "stories.json")
 		err := json.NewDecoder(body).Decode(&stories)
