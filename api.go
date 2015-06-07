@@ -9,11 +9,11 @@ import (
 
 var apiEndpoint = "https://hacker-news.firebaseio.com/v0/"
 
-type ids []int
+type Ids []int
 
-type maxitem int
+type MaxItem int
 
-type user struct {
+type User struct {
 	ID        int    `json:"id"`
 	Delay     int    `json:"delay"`
 	Created   int    `json:"created"`
@@ -22,7 +22,7 @@ type user struct {
 	Submitted []int  `json:"submitted"`
 }
 
-type story struct {
+type Story struct {
 	By          string `json:"by"`
 	Dead        bool   `json:"dead"`
 	Deleted     bool   `json:"deleted"`
@@ -39,15 +39,15 @@ type story struct {
 	URL         string `json:"url"`
 }
 
-type updates struct {
+type Updates struct {
 	Items    []int    `json:"items"`
 	Profiles []string `json:"profiles"`
 }
 
 // GetUser returns User
-func GetUser(name string) (user, error) {
+func GetUser(name string) (User, error) {
 
-	var data user
+	var data User
 
 	body, _ := getJSON(apiEndpoint + "user/" + name + ".json")
 	json.NewDecoder(body).Decode(&data)
@@ -59,7 +59,7 @@ func GetUser(name string) (user, error) {
 // GetStories returns []int ids
 func GetStories(target string) ([]int, error) {
 
-	var stories ids
+	var stories Ids
 	switch target {
 	case "new", "top", "job", "ask":
 		body, _ := getJSON(apiEndpoint + target + "stories.json")
@@ -75,12 +75,12 @@ func GetStories(target string) ([]int, error) {
 }
 
 // GetItem returns item (story, comment, ask, job, poll, pollopt)
-func GetItem(id int) (story, error) {
+func GetItem(id int) (Story, error) {
 
 	body, _ := getJSON(apiEndpoint + "item/" + strconv.Itoa(id) + ".json")
 	defer body.Close()
 
-	var data story
+	var data Story
 	json.NewDecoder(body).Decode(&data)
 	return data, nil
 }
@@ -89,15 +89,15 @@ func GetItem(id int) (story, error) {
 func GetMaxItemID() (int, error) {
 	body, _ := getJSON(apiEndpoint + "maxitem.json")
 	defer body.Close()
-	var num maxitem
+	var num MaxItem
 	json.NewDecoder(body).Decode(&num)
 	return (int)(num), nil
 }
 
 // GetUpdates returns item and profile changes
-func GetUpdates() (updates, error) {
+func GetUpdates() (Updates, error) {
 
-	var data updates
+	var data Updates
 
 	body, _ := getJSON(apiEndpoint + "updates.json")
 	json.NewDecoder(body).Decode(&data)
