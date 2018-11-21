@@ -9,7 +9,7 @@ wrapper for hacker news API ( https://github.com/HackerNews/API ) written in Gol
 package main
 
 import (
-	h "github.com/qube81/hackernews-api-go"
+	h "github.com/ytkhs/hackernews-api-go"
 
 	"fmt"
 )
