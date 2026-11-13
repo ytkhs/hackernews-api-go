@@ -2,23 +2,26 @@ package hackernewsapi
 
 import (
 	"encoding/json"
-	"io"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var apiEndpoint = "https://hacker-news.firebaseio.com/v0/"
+
+var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 type Ids []int
 
 type MaxItem int
 
 type User struct {
-	ID        int    `json:"id"`
+	ID        string `json:"id"`
 	Delay     int    `json:"delay"`
-	Created   int    `json:"created"`
-	Karma     int    `json:"karna"`
+	Created   int64  `json:"created"`
+	Karma     int    `json:"karma"`
 	About     string `json:"about"`
 	Submitted []int  `json:"submitted"`
 }
@@ -47,76 +50,61 @@ type Updates struct {
 
 // GetUser returns User
 func GetUser(name string) (User, error) {
-
 	var data User
-
-	body, _ := getJSON(apiEndpoint + "user/" + name + ".json")
-	json.NewDecoder(body).Decode(&data)
-	defer body.Close()
-
-	return data, nil
+	err := getJSON(apiEndpoint+"user/"+name+".json", &data)
+	return data, err
 }
 
 // GetStories returns []int ids
 func GetStories(target string) ([]int, error) {
+	t := strings.ToLower(target)
+	switch t {
+	case "new", "top", "job", "ask":
+	default:
+		return nil, fmt.Errorf("hackernewsapi: unknown story target %q", target)
+	}
 
 	var stories Ids
-	switch strings.ToLower(target) {
-	case "new", "top", "job", "ask":
-		body, _ := getJSON(apiEndpoint + target + "stories.json")
-		err := json.NewDecoder(body).Decode(&stories)
-		defer body.Close()
-
-		if err != nil {
-			return nil, err
-		}
-
+	if err := getJSON(apiEndpoint+t+"stories.json", &stories); err != nil {
+		return nil, err
 	}
 	return stories, nil
 }
 
 // GetItem returns item (story, comment, ask, job, poll, pollopt)
 func GetItem(id int) (Story, error) {
-
-	body, _ := getJSON(apiEndpoint + "item/" + strconv.Itoa(id) + ".json")
-	defer body.Close()
-
 	var data Story
-	json.NewDecoder(body).Decode(&data)
-	return data, nil
+	err := getJSON(apiEndpoint+"item/"+strconv.Itoa(id)+".json", &data)
+	return data, err
 }
 
 // GetMaxItemID returns hackernews max item id (LIVE)
 func GetMaxItemID() (int, error) {
-	body, _ := getJSON(apiEndpoint + "maxitem.json")
-	defer body.Close()
 	var num MaxItem
-	json.NewDecoder(body).Decode(&num)
-	return (int)(num), nil
+	err := getJSON(apiEndpoint+"maxitem.json", &num)
+	return int(num), err
 }
 
 // GetUpdates returns item and profile changes
 func GetUpdates() (Updates, error) {
-
 	var data Updates
-
-	body, _ := getJSON(apiEndpoint + "updates.json")
-	json.NewDecoder(body).Decode(&data)
-	defer body.Close()
-
-	return data, nil
+	err := getJSON(apiEndpoint+"updates.json", &data)
+	return data, err
 }
 
-func getJSON(url string) (io.ReadCloser, error) {
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Close = true // connection reset
-
-	client := new(http.Client)
-	response, err := client.Do(req)
-
+func getJSON(url string, v interface{}) error {
+	resp, err := httpClient.Get(url)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("hackernewsapi: GET %s: %s", url, resp.Status)
 	}
 
-	return response.Body, nil
+	if err := json.NewDecoder(resp.Body).Decode(v); err != nil {
+		return fmt.Errorf("hackernewsapi: decode %s: %w", url, err)
+	}
+	return nil
 }
